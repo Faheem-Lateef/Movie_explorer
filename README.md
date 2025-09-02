@@ -94,129 +94,106 @@ movie-explorer/
 ## System Architecture
 
 ### High-Level Overview
- 
-┌──────────────────────────────────────────────────────┐
-│              MOVIE EXPLORER ARCHITECTURE             │
-└──────────────────────────────────────────────────────┘
 
-     [Client]                [Server]              [Data]
-        │                       │                     │
-   ┌─────────┐            ┌─────────┐          ┌─────────┐
-   │ React   │───HTTP───> │ Node.js │───TCP──> │ MongoDB │
-   │ Frontend│<───JSON─── │ Backend │<──Data── │Database │
-   └─────────┘            └─────────┘          └─────────┘
- 
+```mermaid
+graph LR
+    A[Client] -->|HTTP/HTTPS| B[React Frontend]
+    B -->|REST API| C[Node.js Backend]
+    C -->|MongoDB| D[(MongoDB Database)]
+    C -->|HTTPS| E[External APIs]
+```
 
 ### Detailed Component Architecture
- 
-┌──────────────────────────────────────────────────────┐
-│           DETAILED COMPONENT ARCHITECTURE            │
-└──────────────────────────────────────────────────────┘
 
-┌─────────────────────────┐
-│      FRONTEND           │
-│  ┌─────────────────┐    │
-│  │   Components    │    │
-│  ├─────────────────┤    │
-│  │     Pages       │    │
-│  ├─────────────────┤    │
-│  │   API Service   │    │
-│  └─────────────────┘    │
-└───────────┬─────────────┘
-            │ REST API
-┌───────────▼─────────────┐
-│       BACKEND           │
-│  ┌─────────────────┐    │
-│  │   Controllers   │    │
-│  ├─────────────────┤    │
-│  │     Routes      │    │
-│  ├─────────────────┤    │
-│  │     Models      │    │
-│  └─────────────────┘    │
-└───────────┬─────────────┘
-            │ Mongoose
-┌───────────▼─────────────┐
-│       DATABASE          │
-│  ┌─────────────────┐    │
-│  │   Collections   │    │
-│  └─────────────────┘    │
-└─────────────────────────┘
- 
+```mermaid
+graph TD
+    subgraph Frontend[Frontend]
+        A[Components] --> B[Pages]
+        B --> C[API Service]
+    end
+    
+    subgraph Backend[Backend]
+        D[Routes]
+        E[Controllers]
+        F[Models]
+        D --> E
+        E --> F
+    end
+    
+    subgraph Database[Database]
+        G[(Collections)]
+    end
+    
+    C -->|REST API| D
+    F -->|Mongoose| G
+```
 
 ### Data Flow
- 
-┌──────────────────────────────────────────────────────┐
-│                 DATA FLOW DIAGRAM                    │
-└──────────────────────────────────────────────────────┘
 
-User Input ──①──> React Component
-                      │
-                      ②
-                      ▼
-                  API Service
-                      │
-                      ③ HTTP Request
-                      ▼
-                NGINX Proxy ──④──> Express Server
-                                        │
-                                        ⑤
-                                        ▼
-                                  Route Handler
-                                        │
-                                        ⑥
-                                        ▼
-                                  Controller
-                                   │        │
-                                   ⑦        ⑧
-                                   ▼        ▼
-                              Database  External API
-                                   │        │
-                                   ⑨        ⑩
-                                   ▼        ▼
-                              Data Result  Movie Data
-                                   │        │
-                                   └───⑪───┘
-                                        │
-                                        ⑫ Response
-                                        ▼
-                                  Client Display
- 
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend as React Frontend
+    participant NGINX as NGINX Proxy
+    participant Backend as Express Server
+    participant DB as Database
+    participant API as External API
+    
+    User->>Frontend: ① User Input
+    Frontend->>Frontend: ② Process Input
+    Frontend->>NGINX: ③ HTTP Request
+    NGINX->>Backend: ④ Proxy Request
+    Backend->>Backend: ⑤ Route Handler
+    Backend->>Backend: ⑥ Process Request
+    
+    alt Data Required
+        Backend->>DB: ⑦ Query Database
+        DB-->>Backend: Data Result
+    else External Data
+        Backend->>API: ⑧ Call External API
+        API-->>Backend: Movie Data
+    end
+    
+    Backend-->>NGINX: ⑪ Response
+    NGINX-->>Frontend: ⑫ Response
+    Frontend-->>User: Display Data
+```
 
 ### Deployment Architecture
- 
-┌─────────────────────────────────────────────────────┐
-│                 Docker Host                         │
-│                                                     │
-│  ┌───────────────────────────────────────────┐     │
-│  │         Docker Network Bridge             │     │
-│  │                                           │     │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐  │     │
-│  │  │  NGINX   │ │  React   │ │  Node.js │  │     │
-│  │  │Container │ │Container │ │Container │  │     │
-│  │  │   :80    │ │  :5173   │ │  :3000   │  │     │
-│  │  └────┬─────┘ └────┬─────┘ └────┬─────┘  │     │
-│  │       └────────────┼────────────┘        │     │
-│  │                    │                     │     │
-│  │              ┌─────▼─────┐              │     │
-│  │              │  MongoDB  │              │     │
-│  │              │ Container │              │     │
-│  │              │  :27017   │              │     │
-│  │              └───────────┘              │     │
-│  └───────────────────────────────────────────┘     │
-└─────────────────────────────────────────────────────┘
- 
+
+```mermaid
+graph TD
+    subgraph DockerHost[Docker Host]
+        subgraph Network[DBridge Network]
+            NGINX[NGINX:80]
+            React[React:5173]
+            Node[Node.js:3000]
+            MongoDB[(MongoDB:27017)]
+            
+            NGINX --> React
+            NGINX --> Node
+            Node --> MongoDB
+        end
+    end
+```
 
 ### Component Relationships
- 
-┌──────────────────────────────────────────────────────┐
-│              COMPONENT RELATIONSHIPS                 │
-└──────────────────────────────────────────────────────┘
 
-Frontend ──HTTP──> NGINX ──Proxy──> Backend
-Backend ──Query──> Database
-Backend ──HTTPS──> External API
-Frontend <──JWT──> Backend (Authentication)
- 
+```mermaid
+flowchart LR
+    Frontend[Frontend] -->|HTTP| NGINX[NGINX]
+    NGINX -->|Proxy| Backend[Backend]
+    Backend -->|Query| Database[(Database)]
+    Backend -->|HTTPS| ExternalAPI[External API]
+    Frontend <-->|JWT| Backend
+    
+    style Frontend fill:#f9f,stroke:#333
+    style Backend fill:#bbf,stroke:#333
+    style Database fill:#9f9,stroke:#333
+    style ExternalAPI fill:#f96,stroke:#333
+```
+
+## Environment Variables
 
 ## Environment Variables
 
