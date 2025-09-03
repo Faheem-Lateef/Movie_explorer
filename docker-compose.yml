@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Frontend Service
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: movie-explorer-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - movie-network
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+
+  # Backend Service
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: movie-explorer-backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    networks:
+      - movie-network
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/movie-explorer
+      - JWT_SECRET=your_jwt_secret_key
+      - TMDB_API_KEY=your_tmdb_api_key
+
+  # MongoDB Service
+  mongodb:
+    image: mongo:6.0
+    container_name: movie-explorer-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - movie-network
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=movie-explorer
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+
+  # MongoDB Express (Optional Web UI for MongoDB)
+  mongo-express:
+    image: mongo-express:latest
+    container_name: movie-explorer-mongo-express
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongodb
+    networks:
+      - movie-network
+    restart: unless-stopped
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=password
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=password
+
+networks:
+  movie-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
