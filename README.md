@@ -13,57 +13,72 @@ A full-stack movie exploration application built with React, Node.js, and Expres
 
 ## Prerequisites
 
-- Node.js (v16 or higher)
-- npm (v8 or higher)
-- MongoDB (for database)
+Before you begin, ensure you have the following installed:
+
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
 ## Getting Started
 
-### 1. Clone the repository
+### 1. Clone the Repository
 
- 
+```bash
 git clone https://github.com/yourusername/movie-explorer.git
 cd movie-explorer
+```
 
-### 2. Set up the Backend
+### 2. Create an Environment File
 
-1. Navigate to the server directory:
-    
-   cd server
+Create a `.env` file in the root of the project and add the following environment variables. 
 
-2. Install dependencies:
-    
-   npm install
+```
+# Server Configuration
+PORT=5000
+MONGO_URI=mongodb://mongodb:27017/movie-explorer
+JWT_SECRET=your_jwt_secret_key
+TMDB_API_KEY=your_tmdb_api_key
 
-3. Create a `.env` file in the server directory with the following variables:
-   PORT=5000
-   MONGODB_URI=your_mongodb_connection_string
-   JWT_SECRET=your_jwt_secret_key
-   TMDB_API_KEY=your_tmdb_api_key
-   NODE_ENV=development
+# MongoDB Credentials
+MONGO_INITDB_ROOT_USERNAME=your_mongo_admin_user
+MONGO_INITDB_ROOT_PASSWORD=your_mongo_admin_password
 
-4. Start the development server:
-    
-   npm run dev
-   The server will be running at `http://localhost:5000`
+# Mongo Express Configuration
+ME_CONFIG_MONGODB_ADMINUSERNAME=your_mongo_admin_user
+ME_CONFIG_MONGODB_ADMINPASSWORD=your_mongo_admin_password
+ME_CONFIG_BASICAUTH_USERNAME=your_mongo_express_user
+ME_CONFIG_BASICAUTH_PASSWORD=your_mongo_express_password
+```
 
-### 3. Set up the Frontend
+### 3. Build and Run the Application
 
-1. Open a new terminal and navigate to the client directory:
-    
-   cd ../client
+```bash
+docker-compose up --build
+```
 
-2. Install dependencies:
-    
-   npm install
+Once the containers are up and running, you can access the application at:
 
-3. Start the development server:
-    
-   npm run dev
-   The React app will be running at `http://localhost:5173`
+- **Frontend:** [http://localhost:80](http://localhost:80)
+- **Backend:** [http://localhost:5000](http://localhost:5000)
+- **Mongo Express:** [http://localhost:8081](http://localhost:8081)
+
+## Environment Variables
+
+| Variable                          | Description                                      |
+| --------------------------------- | ------------------------------------------------ |
+| `PORT`                            | The port for the backend server.                 |
+| `MONGO_URI`                       | The connection string for the MongoDB database.  |
+| `JWT_SECRET`                      | A secret key for signing JWT tokens.             |
+| `TMDB_API_KEY`                    | Your API key for The Movie Database (TMDb).      |
+| `MONGO_INITDB_ROOT_USERNAME`      | The root username for the MongoDB instance.      |
+| `MONGO_INITDB_ROOT_PASSWORD`      | The root password for the MongoDB instance.      |
+| `ME_CONFIG_MONGODB_ADMINUSERNAME` | The admin username for Mongo Express.            |
+| `ME_CONFIG_MONGODB_ADMINPASSWORD` | The admin password for Mongo Express.            |
+| `ME_CONFIG_BASICAUTH_USERNAME`    | The username for accessing Mongo Express.        |
+| `ME_CONFIG_BASICAUTH_PASSWORD`    | The password for accessing Mongo Express.        |
 
 ## Project Structure
 
+```
 movie-explorer/
 ├── client/                 # Frontend React application
 │   ├── public/            # Static files
@@ -78,18 +93,23 @@ movie-explorer/
     │   ├── middleware/   # Custom middleware
     │   └── index.js      # Server entry point
     └── .env              # Environment variables
+```
 
 ## Available Scripts
 
+While Docker is the recommended way to run the project, you can also run the client and server independently.
+
 ### Client
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
+
+- `npm run dev`: Start the development server.
+- `npm run build`: Build the application for production.
+- `npm run preview`: Preview the production build.
+- `npm run lint`: Run the linter.
 
 ### Server
-- `npm start` - Start production server
-- `npm run dev` - Start development server with nodemon
+
+- `npm start`: Start the production server.
+- `npm run dev`: Start the development server with Nodemon.
 
 ## System Architecture
 
@@ -192,15 +212,4 @@ flowchart LR
     style Database fill:#9f9,stroke:#333
     style ExternalAPI fill:#f96,stroke:#333
 ```
-
-## Environment Variables
-
-## Environment Variables
-
-### Server (.env)
-- `PORT` - Port to run the server on (default: 5000)
-- `MONGODB_URI` - MongoDB connection string
-- `JWT_SECRET` - Secret key for JWT authentication
-- `TMDB_API_KEY` - API key for The Movie Database (TMDb)
-- `NODE_ENV` - Application environment (development/production)
 
