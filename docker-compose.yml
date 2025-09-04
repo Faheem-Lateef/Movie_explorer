@@ -26,16 +26,22 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - movie-network
     restart: unless-stopped
     environment:
       - NODE_ENV=production
       - PORT=5000
-      - MONGODB_URI=mongodb://mongodb:27017/movie-explorer
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/movie-explorer?authSource=admin
       - JWT_SECRET=your_jwt_secret_key
       - TMDB_API_KEY=your_tmdb_api_key
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # MongoDB Service
   mongodb:
@@ -52,6 +58,11 @@ services:
       - MONGO_INITDB_DATABASE=movie-explorer
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=password
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # MongoDB Express (Optional Web UI for MongoDB)
   mongo-express:
