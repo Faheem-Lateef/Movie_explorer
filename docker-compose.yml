@@ -1,7 +1,9 @@
+# Docker Compose configuration for the Movie Explorer application
+# This file reads configuration from a .env file in the same directory.
 version: '3.8'
 
 services:
-  # Frontend Service
+  # Frontend Service (React/Vue/Angular served by Nginx)
   frontend:
     build:
       context: ./client
@@ -17,33 +19,35 @@ services:
     environment:
       - NODE_ENV=production
 
-  # Backend Service
+  # Backend Service (Node.js API)
   backend:
     build:
       context: ./server
       dockerfile: Dockerfile
     container_name: movie-explorer-backend
     ports:
-      - "5000:5000"
+      # The port is now dynamically set from the .env file
+      - "${PORT}:${PORT}"
     depends_on:
       mongodb:
         condition: service_healthy
     networks:
       - movie-network
     restart: unless-stopped
+    # All environment variables are loaded from the .env file
     environment:
       - NODE_ENV=production
-      - PORT=5000
-      - MONGODB_URI=mongodb://admin:password@mongodb:27017/movie-explorer?authSource=admin
-      - JWT_SECRET=your_jwt_secret_key
-      - TMDB_API_KEY=your_tmdb_api_key
+      - PORT=${PORT}
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - TMDB_API_KEY=${TMDB_API_KEY}
     healthcheck:
       test: ["CMD", "node", "healthcheck.js"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # MongoDB Service
+  # MongoDB Database Service
   mongodb:
     image: mongo:6.0
     container_name: movie-explorer-mongodb
@@ -54,10 +58,11 @@ services:
     networks:
       - movie-network
     restart: unless-stopped
+    # Database credentials are loaded from the .env file
     environment:
       - MONGO_INITDB_DATABASE=movie-explorer
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
@@ -75,16 +80,19 @@ services:
     networks:
       - movie-network
     restart: unless-stopped
+    # Mongo Express configuration is loaded from the .env file
     environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=password
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${ME_CONFIG_MONGODB_ADMINUSERNAME}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${ME_CONFIG_MONGODB_ADMINPASSWORD}
       - ME_CONFIG_MONGODB_SERVER=mongodb
-      - ME_CONFIG_BASICAUTH_USERNAME=admin
-      - ME_CONFIG_BASICAUTH_PASSWORD=password
+      - ME_CONFIG_BASICAUTH_USERNAME=${ME_CONFIG_BASICAUTH_USERNAME}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${ME_CONFIG_BASICAUTH_PASSWORD}
 
+# Define the network for services to communicate
 networks:
   movie-network:
     driver: bridge
 
+# Define the volume for persistent MongoDB data
 volumes:
   mongodb_data:
