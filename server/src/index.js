@@ -7,10 +7,49 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const swaggerJsDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 const connectDB = require('./config/db');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Swagger configuration
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Movie Explorer API',
+      version: '1.0.0',
+      description: 'API documentation for the Movie Explorer application',
+      contact: {
+        name: 'API Support',
+        url: 'http://localhost:5000',
+      },
+    },
+    servers: [
+      {
+        url: `http://localhost:${PORT}`,
+        description: 'Development server',
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        }
+      }
+    },
+    security: [{
+      bearerAuth: []
+    }],
+  },
+  apis: ['./src/routes/*.js', './src/controllers/*.js'],
+};
+
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
 // connect DB
 connectDB();
@@ -35,6 +74,9 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().t
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/movies', require('./routes/movies'));
 app.use('/api/favorites', require('./routes/favorites'));
+
+// Serve Swagger documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // error handler (simple)
 app.use((err, req, res, next) => {
