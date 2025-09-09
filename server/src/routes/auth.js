@@ -1,3 +1,12 @@
+/**
+ * Authentication Routes
+ * 
+ * This file handles all authentication-related routes including user registration,
+ * login, and profile retrieval. It includes JWT-based authentication and user management.
+ * 
+ * @module routes/auth
+ */
+
 // server/src/routes/auth.js
 const express = require('express');
 const router = express.Router();
@@ -18,16 +27,16 @@ const authMiddleware = require('../middleware/auth');
  *     User:
  *       type: object
  *       required:
- *         - name
+ *         - username
  *         - email
  *         - password
  *       properties:
  *         _id:
  *           type: string
  *           description: The auto-generated ID of the user
- *         name:
+ *         username:
  *           type: string
- *           description: The user's full name
+ *           description: The user's username
  *         email:
  *           type: string
  *           format: email
@@ -63,12 +72,14 @@ const authMiddleware = require('../middleware/auth');
  *           schema:
  *             type: object
  *             required:
- *               - name
+ *               - username
  *               - email
  *               - password
  *             properties:
- *               name:
+ *               username:
  *                 type: string
+ *                 minLength: 3
+ *                 maxLength: 30
  *               email:
  *                 type: string
  *                 format: email
@@ -76,6 +87,7 @@ const authMiddleware = require('../middleware/auth');
  *                 type: string
  *                 format: password
  *                 minLength: 6
+ *                 maxLength: 100
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -92,7 +104,7 @@ router.post('/register', authController.register);
  * @swagger
  * /api/auth/login:
  *   post:
- *     summary: Login user and get token
+ *     summary: Login user and get authentication token
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -107,9 +119,11 @@ router.post('/register', authController.register);
  *               email:
  *                 type: string
  *                 format: email
+ *                 description: The user's email address
  *               password:
  *                 type: string
  *                 format: password
+ *                 description: The user's password
  *     responses:
  *       200:
  *         description: Login successful
@@ -118,6 +132,25 @@ router.post('/register', authController.register);
  *             schema:
  *               $ref: '#/components/schemas/AuthResponse'
  *       400:
+ *         description: Email and password are required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "email and password are required"
+ *       401:
+ *         description: Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid credentials"
  *         description: Invalid credentials
  */
 router.post('/login', authController.login);
@@ -136,9 +169,30 @@ router.post('/login', authController.login);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *       401:
- *         description: Not authenticated
+ *         description: Unauthorized - No token provided or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "User not found"
  */
 router.get('/me', authMiddleware, authController.me);
 
