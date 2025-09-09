@@ -1,3 +1,13 @@
+/**
+ * Favorites Routes
+ * 
+ * This file handles all routes related to user's favorite movies functionality.
+ * It provides endpoints for adding, retrieving, and removing movies from a user's favorites list.
+ * All routes are protected and require authentication.
+ * 
+ * @module routes/favorites
+ */
+
 // server/src/routes/favorites.js
 const express = require('express');
 const router = express.Router();
