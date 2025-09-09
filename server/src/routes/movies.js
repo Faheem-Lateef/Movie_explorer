@@ -1,3 +1,13 @@
+/**
+ * Movies Routes
+ * 
+ * This file handles all movie-related routes including searching for movies
+ * and retrieving detailed information about specific movies.
+ * It interfaces with external movie APIs to provide movie data.
+ * 
+ * @module routes/movies
+ */
+
 // server/src/routes/movies.js
 const express = require('express');
 const router = express.Router();
